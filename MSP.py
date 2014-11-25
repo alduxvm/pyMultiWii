@@ -12,8 +12,7 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 
-import serial, struct
-from time import sleep
+import serial, struct, time
 
 import cfg
 
@@ -105,8 +104,8 @@ def readAttitude():
 def readRCRaw():
     i=0
     try:
-        for value in attitude:
-            attitude[value]=temp[i]
+        for value in rawIMU:
+            rawIMU[value]=float(temp[i])
             i+=1
     except IndexError:
         pass
@@ -128,9 +127,9 @@ def startMulticopter():
         for i in range(1,wakeup):
             if cfg.PRINT:
                 print wakeup-i
-                sleep(1)
+                time.sleep(1)
             else:
-                sleep(1)
+                time.sleep(1)
     except Exception, error:
         print "\n\nError opening "+ser.port+" port.\n\n"
         quit()
@@ -152,28 +151,39 @@ def sendCMD(data_length, code, data):
         quit()
     return b
 
-def readData():
+def getData(cmd):
     global rcChannels,rawIMU,attitude,temp
     try:
+        sendCMD(0,cmd,[])
+        time.sleep(0.01)
+        timeout = time.time() + 0.04
         while True:
             header = ser.read(3)
             if header == '$M>':
                 break
+            if time.time() > timeout:
+                ser.flushInput()
+                ser.flushOutput()
+                sendCMD(0,cmd,[])
+
         datalength = struct.unpack('<b', ser.read())[0]
         code = struct.unpack('<b', ser.read())
         data = ser.read(datalength)
         temp = struct.unpack('<'+'h'*(datalength/2),data)
         evaluateCommand[code[0]]()
+        ser.flushInput()
+        ser.flushOutput()
         #temp = struct.unpack('h'*(datalength/2),data)
         #i=0
         #for value in attitude:
         #    attitude[value]=temp[i]
         #    i+=1
     except Exception, error:
-        print "\n\nError in readData."
-        print "("+str(error)+")\n\n"
-        ser.close()
-        quit()
+        pass
+        #print "\n\nError in readData."
+        #print "("+str(error)+")\n\n"
+        #ser.close()
+        #quit()
 
 
 

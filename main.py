@@ -24,12 +24,10 @@ if __name__ == "__main__":
     try:
         while True:
             start=time.time()
-            MSP.sendCMD(0,MSP.ATTITUDE,[])
-            MSP.readData()
-            
+            MSP.getData(MSP.RC)
             elapsed = time.time()-start
             #print rc
-            print MSP.attitude
+            print MSP.rcChannels
             print str(round(elapsed,3))+" "
             
           
