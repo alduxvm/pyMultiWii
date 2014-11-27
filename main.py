@@ -22,11 +22,12 @@ if __name__ == "__main__":
     try:
         while True:
 
-            MSP.getData(MSP.ATTITUDE)
+            MSP.getData(MSP.RAW_IMU)
             #cfg.plotData()
-            print MSP.attitude
+            print MSP.rawIMU
             
           
     except Exception,error:
         print "Error: "+str(error)
         MSP.ser.close()
+        file.close()

@@ -70,9 +70,9 @@ wakeup = 12
 
 
 """Global variables of data"""
-rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0}
-rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0}
-attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0}
+rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
+rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'elapsed':0,'timestamp':0}
+attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
 temp = ();
 elapsed = 0
 
@@ -87,6 +87,8 @@ def readRaw():
         rawIMU['gx']=float(temp[3])
         rawIMU['gy']=float(temp[4])
         rawIMU['gz']=float(temp[5])
+        rawIMU['elapsed']=round(elapsed,3)
+        rawIMU['timestamp']=time.time()
     except IndexError:
         pass
 
@@ -96,6 +98,8 @@ def readRC():
         for value in rcChannels:
             rcChannels[value]=temp[i]
             i+=1
+        rcChannels['elapsed']=round(elapsed,3)
+        rcChannels['timestamp']=time.time()
     except IndexError:
         pass
 
@@ -106,6 +110,7 @@ def readAttitude():
         attitude['angy']=float(temp[1]/10.0)
         attitude['heading']=float(temp[2])
         attitude['elapsed']=round(elapsed,3)
+        attitude['timestamp']=time.time()
     except IndexError:
         pass
 
@@ -193,7 +198,7 @@ def getData_old(cmd):
 
 """Function to send a command, receive the response and proccess it, this version does this process just once"""
 def getData(cmd):
-    global rcChannels,rawIMU,attitude,temp
+    global rcChannels,rawIMU,attitude,temp,elapsed
     try:
         start = time.time()
         sendCMD(0,cmd,[])

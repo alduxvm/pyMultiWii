@@ -48,3 +48,4 @@ if __name__ == "__main__":
     except Exception,error:
         print "Error: "+str(error)
         MSP.ser.close()
+        file.close()

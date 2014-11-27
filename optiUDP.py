@@ -18,6 +18,7 @@ from twisted.internet import reactor
 import cfg
 
 UDPmess = ();
+UDPtimestamp = 0
 
 class optiUDPserver(SocketServer.BaseRequestHandler):
 
@@ -69,7 +70,8 @@ class twistedUDP(DatagramProtocol):
         global UDPmess
         numOfValues = len(data) / 8
         mess=struct.unpack('>' + 'd' * numOfValues, data)
-        UDPmess=mess
+        UDPmess = [ round(element,4) for element in mess ]
+        UDPmess.insert(0,time.time())
 
 def startTwisted():
     reactor.listenUDP(cfg.UDPport, twistedUDP())
