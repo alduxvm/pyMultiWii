@@ -56,6 +56,7 @@ DEBUG = 254
 """Serial port configuration"""
 ser = serial.Serial()
 ser.port = "/dev/tty.usbserial-A101CCVF"
+#ser.port = "/dev/ttyUSB0"    # This is the port that the MultiWii is attached to (for raspberry pie)
 ser.baudrate = 115200
 ser.bytesize = serial.EIGHTBITS
 ser.parity = serial.PARITY_NONE
@@ -77,9 +78,12 @@ elapsed = 0
 """Use a pythonic way to evaluate and process command received"""
 def readRaw():
     try:
-        for value in rawIMU:
-            rawIMU[value]=temp[i]
-            i+=1
+        rawIMU['ax']=float(temp[0])
+        rawIMU['ay']=float(temp[1])
+        rawIMU['az']=float(temp[2])
+        rawIMU['gx']=float(temp[3])
+        rawIMU['gy']=float(temp[4])
+        rawIMU['gz']=float(temp[5])
     except IndexError:
         pass
 
@@ -102,9 +106,12 @@ def readAttitude():
 
 def readRCRaw():
     try:
-        for value in rawIMU:
-            rawIMU[value]=float(temp[i])
-            i+=1
+        rawIMU['ax']=float(temp[0])
+        rawIMU['ay']=float(temp[1])
+        rawIMU['az']=float(temp[2])
+        rawIMU['gx']=float(temp[3])
+        rawIMU['gy']=float(temp[4])
+        rawIMU['gz']=float(temp[5])
     except IndexError:
         pass
 

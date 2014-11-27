@@ -63,11 +63,11 @@ def manageData():
         else:
             print optiUDP.UDPmess
 
-plt.ion() # enable interactivity
-ydata = [0]*50
-ax1=plt.axes() 
-line, = plt.plot(ydata)
-plt.ylim([-100,100])
+#plt.ion() # enable interactivity
+#ydata = [0]*50
+#ax1=plt.axes() 
+#line, = plt.plot(ydata)
+#plt.ylim([-100,100])
 
 def plotData():
     ymin = float(min(ydata))-10

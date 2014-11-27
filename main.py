@@ -25,7 +25,7 @@ if __name__ == "__main__":
             MSP.getData2(MSP.ATTITUDE)
             elapsed = time.time()-start
 
-            cfg.plotData()
+            #cfg.plotData()
 
             #print rc
             #print MSP.attitude
