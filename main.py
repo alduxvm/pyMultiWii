@@ -15,8 +15,6 @@ __status__ = "Development"
 import serial, struct, time
 import cfg, MSP
 
-
-
 if __name__ == "__main__":
 
     MSP.startMulticopter()
@@ -24,11 +22,14 @@ if __name__ == "__main__":
     try:
         while True:
             start=time.time()
-            MSP.getData(MSP.RC)
+            MSP.getData2(MSP.ATTITUDE)
             elapsed = time.time()-start
+
+            cfg.plotData()
+
             #print rc
-            print MSP.rcChannels
-            print str(round(elapsed,3))+" "
+            #print MSP.attitude
+            #print str(round(elapsed,3))+" "
             
           
     except Exception,error:

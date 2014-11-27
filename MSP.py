@@ -55,7 +55,7 @@ DEBUG = 254
 
 """Serial port configuration"""
 ser = serial.Serial()
-ser.port = cfg.port
+ser.port = "/dev/tty.usbserial-A101CCVF"
 ser.baudrate = 115200
 ser.bytesize = serial.EIGHTBITS
 ser.parity = serial.PARITY_NONE
@@ -70,12 +70,12 @@ wakeup = 12
 """Global variables of data"""
 rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0}
 rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0}
-attitude = {'angx':0,'angy':0,'heading':0}
+attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0}
 temp = ();
+elapsed = 0
 
 """Use a pythonic way to evaluate and process command received"""
 def readRaw():
-    i=0
     try:
         for value in rawIMU:
             rawIMU[value]=temp[i]
@@ -84,7 +84,6 @@ def readRaw():
         pass
 
 def readRC():
-    i=0
     try:
         for value in rcChannels:
             rcChannels[value]=temp[i]
@@ -93,16 +92,15 @@ def readRC():
         pass
 
 def readAttitude():
-    i=0
     try:
         attitude['angx']=float(temp[0]/10.0)
         attitude['angy']=float(temp[1]/10.0)
         attitude['heading']=float(temp[2])
+        attitude['elapsed']=round(elapsed,3)
     except IndexError:
         pass
 
 def readRCRaw():
-    i=0
     try:
         for value in rawIMU:
             rawIMU[value]=float(temp[i])
@@ -173,6 +171,33 @@ def getData(cmd):
         evaluateCommand[code[0]]()
         ser.flushInput()
         ser.flushOutput()
+    except Exception, error:
+        pass
+        #print "\n\nError in readData."
+
+
+def getData2(cmd):
+    global rcChannels,rawIMU,attitude,temp
+    try:
+        sendCMD(0,cmd,[])
+        #time.sleep(0.01)
+        timeout = time.time() + 0.05
+        while True:
+            header = ser.read()
+            if header == '$':
+                header = header+ser.read(2)
+                break
+            #if time.time() > timeout:
+            #    ser.flushInput()
+            #    ser.flushOutput()
+            #    sendCMD(0,cmd,[])
+        datalength = struct.unpack('<b', ser.read())[0]
+        code = struct.unpack('<b', ser.read())
+        data = ser.read(datalength)
+        temp = struct.unpack('<'+'h'*(datalength/2),data)
+        evaluateCommand[code[0]]()
+        ser.flushInput()
+        ser.flushOutput()
         #temp = struct.unpack('h'*(datalength/2),data)
         #i=0
         #for value in attitude:
@@ -180,12 +205,28 @@ def getData(cmd):
         #    i+=1
     except Exception, error:
         pass
-        #print "\n\nError in readData."
-        #print "("+str(error)+")\n\n"
-        #ser.close()
-        #quit()
 
 
-
+def getDataInf(cmd):
+    global rcChannels,rawIMU,attitude,temp,elapsed
+    while True:
+        try:
+            start = time.time()
+            sendCMD(0,cmd,[])
+            while True:
+                header = ser.read()
+                if header == '$':
+                    header = header+ser.read(2)
+                    break
+            datalength = struct.unpack('<b', ser.read())[0]
+            code = struct.unpack('<b', ser.read())
+            data = ser.read(datalength)
+            temp = struct.unpack('<'+'h'*(datalength/2),data)
+            elapsed = time.time() - start
+            evaluateCommand[code[0]]()
+            ser.flushInput()
+            ser.flushOutput()
+        except Exception, error:
+            pass
 
 
