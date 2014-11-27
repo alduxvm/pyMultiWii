@@ -21,15 +21,10 @@ if __name__ == "__main__":
 
     try:
         while True:
-            start=time.time()
-            MSP.getData2(MSP.ATTITUDE)
-            elapsed = time.time()-start
 
+            MSP.getData(MSP.ATTITUDE)
             #cfg.plotData()
-
-            #print rc
-            #print MSP.attitude
-            #print str(round(elapsed,3))+" "
+            print MSP.attitude
             
           
     except Exception,error:

@@ -68,6 +68,7 @@ ser.dsrdtr = False
 ser.writeTimeout = 2
 wakeup = 12
 
+
 """Global variables of data"""
 rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0}
 rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0}
@@ -75,7 +76,9 @@ attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0}
 temp = ();
 elapsed = 0
 
+
 """Use a pythonic way to evaluate and process command received"""
+"""Assign the temp tuple to the tuple for raw imu data, no magnetometers saved"""
 def readRaw():
     try:
         rawIMU['ax']=float(temp[0])
@@ -87,6 +90,7 @@ def readRaw():
     except IndexError:
         pass
 
+"""Assign the temp tuple to the tuple for rc data"""
 def readRC():
     try:
         for value in rcChannels:
@@ -95,6 +99,7 @@ def readRC():
     except IndexError:
         pass
 
+"""Assign the temp tuple to the tuple for attitude data, beware of the 10.0 for not losing the decimal part"""
 def readAttitude():
     try:
         attitude['angx']=float(temp[0]/10.0)
@@ -104,6 +109,7 @@ def readAttitude():
     except IndexError:
         pass
 
+"""Assign the temp tuple to the tuple for rc and raw data, this depends on a modification on the MultiWii code, and is not fully tested yet"""
 def readRCRaw():
     try:
         rawIMU['ax']=float(temp[0])
@@ -115,6 +121,7 @@ def readRCRaw():
     except IndexError:
         pass
 
+"""Evaluate each command recieved, this works like a case-switch in python"""
 evaluateCommand = {
     102 : readRaw,
     105 : readRC,
@@ -156,7 +163,9 @@ def sendCMD(data_length, code, data):
         quit()
     return b
 
-def getData(cmd):
+
+"""Function to send a command, receive the response and proccess it, this particular version is deprecated, but kept here for showing the evolution of the algorithm"""
+def getData_old(cmd):
     global rcChannels,rawIMU,attitude,temp
     try:
         sendCMD(0,cmd,[])
@@ -180,40 +189,32 @@ def getData(cmd):
         ser.flushOutput()
     except Exception, error:
         pass
-        #print "\n\nError in readData."
 
 
-def getData2(cmd):
+"""Function to send a command, receive the response and proccess it, this version does this process just once"""
+def getData(cmd):
     global rcChannels,rawIMU,attitude,temp
     try:
+        start = time.time()
         sendCMD(0,cmd,[])
-        #time.sleep(0.01)
-        timeout = time.time() + 0.05
         while True:
             header = ser.read()
             if header == '$':
                 header = header+ser.read(2)
                 break
-            #if time.time() > timeout:
-            #    ser.flushInput()
-            #    ser.flushOutput()
-            #    sendCMD(0,cmd,[])
         datalength = struct.unpack('<b', ser.read())[0]
         code = struct.unpack('<b', ser.read())
         data = ser.read(datalength)
         temp = struct.unpack('<'+'h'*(datalength/2),data)
+        elapsed = time.time() - start
         evaluateCommand[code[0]]()
         ser.flushInput()
         ser.flushOutput()
-        #temp = struct.unpack('h'*(datalength/2),data)
-        #i=0
-        #for value in attitude:
-        #    attitude[value]=temp[i]
-        #    i+=1
     except Exception, error:
         pass
 
 
+"""Function to send a command, receive the response and proccess it, this version does this process in a infinite loop, for threaded opreations"""
 def getDataInf(cmd):
     global rcChannels,rawIMU,attitude,temp,elapsed
     while True:

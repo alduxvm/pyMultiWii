@@ -18,7 +18,6 @@ from twisted.internet import reactor
 import cfg
 
 UDPmess = ();
-UDPmess2 = ();
 
 class optiUDPserver(SocketServer.BaseRequestHandler):
 
