@@ -54,16 +54,18 @@ class MultiWii:
     IS_SERIAL = 211
     DEBUG = 254
 
-    """Global variables of data"""
-    rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
-    rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'elapsed':0,'timestamp':0}
-    attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
-    temp = ();
-    elapsed = 0
-    PRINT = 1
 
-    """Serial port initialization"""
+    """Class initialization"""
     def __init__(self, serPort):
+
+        """Global variables of data"""
+        self.rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
+        self.rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'elapsed':0,'timestamp':0}
+        self.attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
+        self.temp = ();
+        self.elapsed = 0
+        self.PRINT = 1
+
         self.ser = serial.Serial()
         self.ser.port = serPort
         self.ser.baudrate = 115200
@@ -79,16 +81,16 @@ class MultiWii:
         wakeup = 12
         try:
             self.ser.open()
-            if MultiWii.PRINT:
+            if self.PRINT:
                 print "Waking up multicopter on "+self.ser.port+"..."
             for i in range(1,wakeup):
-                if MultiWii.PRINT:
+                if self.PRINT:
                     print wakeup-i
                     time.sleep(1)
                 else:
                     time.sleep(1)
         except Exception, error:
-            print "\n\nError opening "+self.ser.port+" port.\n\n"
+            print "\n\nError opening "+self.ser.port+" port.\n"+str(error)+"\n\n"
             quit()
 
     """Function for sending a command to the board"""
@@ -126,29 +128,29 @@ class MultiWii:
             self.ser.flushInput()
             self.ser.flushOutput()
             if cmd == MultiWii.ATTITUDE:
-                MultiWii.attitude['angx']=float(temp[0]/10.0)
-                MultiWii.attitude['angy']=float(temp[1]/10.0)
-                MultiWii.attitude['heading']=float(temp[2])
-                MultiWii.attitude['elapsed']=round(elapsed,3)
-                MultiWii.attitude['timestamp']=time.time()
-                return MultiWii.attitude
+                self.attitude['angx']=float(temp[0]/10.0)
+                self.attitude['angy']=float(temp[1]/10.0)
+                self.attitude['heading']=float(temp[2])
+                self.attitude['elapsed']=round(elapsed,3)
+                self.attitude['timestamp']="%0.2f" % (time.time(),) 
+                return self.attitude
             elif cmd == MultiWii.RC:
-                for value in MultiWii.rcChannels:
-                    MultiWii.rcChannels[value]=temp[i]
+                for value in self.rcChannels:
+                    self.rcChannels[value]=temp[i]
                     i+=1
-                MultiWii.rcChannels['elapsed']=round(elapsed,3)
-                MultiWii.rcChannels['timestamp']=time.time()
-                return MultiWii.rcChannels
+                self.rcChannels['elapsed']=round(elapsed,3)
+                self.rcChannels['timestamp']="%0.2f" % (time.time(),)
+                return self.rcChannels
             elif cmd == MultiWii.RAW_IMU:
-                MultiWii.rawIMU['ax']=float(temp[0])
-                MultiWii.rawIMU['ay']=float(temp[1])
-                MultiWii.rawIMU['az']=float(temp[2])
-                MultiWii.rawIMU['gx']=float(temp[3])
-                MultiWii.rawIMU['gy']=float(temp[4])
-                MultiWii.rawIMU['gz']=float(temp[5])
-                MultiWii.rawIMU['elapsed']=round(elapsed,3)
-                MultiWii.rawIMU['timestamp']=time.time()
-                return MultiWii.rawIMU
+                self.rawIMU['ax']=float(temp[0])
+                self.rawIMU['ay']=float(temp[1])
+                self.rawIMU['az']=float(temp[2])
+                self.rawIMU['gx']=float(temp[3])
+                self.rawIMU['gy']=float(temp[4])
+                self.rawIMU['gz']=float(temp[5])
+                self.rawIMU['elapsed']=round(elapsed,3)
+                self.rawIMU['timestamp']="%0.2f" % (time.time(),)
+                return self.rawIMU
             else:
                 return "No return error!"
         except Exception, error:
