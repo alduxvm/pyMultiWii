@@ -18,6 +18,8 @@ board1 = MultiWii(serialPort)
 
 With the example above, you will see a stream of data on your terminal.
 
+[![ScreenShot](http://img.youtube.com/vi/TpcQ-TOuOA0/0.jpg)](https://www.youtube.com/watch?v=TpcQ-TOuOA0)
+
 ## Example:
 
 This code has no sleeps or similar stuff, so, its very fast, for example, when asking for Attitude data, the whole process takes 0.016 seconds, thats about 62.5hz, which is pretty fast. The output looks like this:

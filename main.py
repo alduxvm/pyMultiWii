@@ -23,7 +23,7 @@ if __name__ == "__main__":
   try:
     while True:
 
-      print board1.getData(MultiWii.RAW_IMU)
+      print board1.getData(MultiWii.ATTITUDE)
       #cfg.plotData()  
   except Exception,error:
     print "Error: "+str(error)
