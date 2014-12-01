@@ -1,9 +1,52 @@
 # pyMultiWii
 
 
-Handles the MultiWii Serial Protocol to send/receive data from boards, also reads UDP data coming from a motion capture system.
+Handles the MultiWii Serial Protocol to send/receive data from boards.
 
-This is a text based / console, no GUI, it works for saving data from the multicopter and/or sending commands from a computer via s serial modem.
+This is a text based / console, no GUI, it works reading data from the multicopter and/or sending commands from a computer via a serial modem. I use this module for doing different request to my multicopters in order to control them wirelessly via a raspberry pie.
+
+## How?
+
+Just create a MultiWii object that receives the serial port parameter and then you can ask for a command by using the function getData, a explicit example is on main.py:
+
+```
+serialPort = "/dev/tty.usbserial-A101CCVF"
+board1 = MultiWii(serialPort)
+    while True:
+		print board1.getData(MultiWii.ATTITUDE)
+```
+
+With the example above, you will see a stream of data on your terminal.
+
+## Example:
+
+This code has no sleeps or similar stuff, so, its very fast, for example, when asking for Attitude data, the whole process takes 0.016 seconds, thats about 62.5hz, which is pretty fast. The output looks like this:
+
+```
+{'timestamp': 1417432436.878697, 'elapsed': 0.016, 'angx': -26.8, 'angy': -24.8, 'heading': -84.0}
+{'timestamp': 1417432436.894663, 'elapsed': 0.016, 'angx': -26.8, 'angy': -24.7, 'heading': -84.0}
+{'timestamp': 1417432436.910673, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.8, 'heading': -84.0}
+{'timestamp': 1417432436.926812, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.7, 'heading': -84.0}
+{'timestamp': 1417432436.942629, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.7, 'heading': -84.0}
+{'timestamp': 1417432436.958657, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.6, 'heading': -84.0}
+{'timestamp': 1417432436.974627, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.6, 'heading': -84.0}
+{'timestamp': 1417432436.990591, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.5, 'heading': -84.0}
+{'timestamp': 1417432437.006598, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.5, 'heading': -84.0}
+{'timestamp': 1417432437.022676, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.5, 'heading': -84.0}
+{'timestamp': 1417432437.038604, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.4, 'heading': -85.0}
+{'timestamp': 1417432437.054619, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.4, 'heading': -85.0}
+{'timestamp': 1417432437.070593, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.3, 'heading': -85.0}
+{'timestamp': 1417432437.086576, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.3, 'heading': -85.0}
+{'timestamp': 1417432437.102768, 'elapsed': 0.016, 'angx': -26.7, 'angy': -24.2, 'heading': -85.0}
+{'timestamp': 1417432437.118586, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.2, 'heading': -85.0}
+{'timestamp': 1417432437.134683, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.2, 'heading': -85.0}
+{'timestamp': 1417432437.150524, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.1, 'heading': -85.0}
+{'timestamp': 1417432437.166525, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.1, 'heading': -85.0}
+```
+
+## Caution
+
+This code is still under heavy development, everyday I add and remove stuff. Use caution.
 
 ## Why?
 
@@ -18,41 +61,3 @@ I works nice... but I want it to work even nicer and better!!! so, we need all t
 I knew that the 3DR radio was not good enough to send data in a fast way to the ground station... So, I put onboard a Raspberry Pie, this computer ask data to the multwii and also to the motion capture system, and saves it... thats it for now.
 
 ![MultWii and Raspberry Pie on a quadcopter](http://www.multiwii.com/forum/download/file.php?id=3360&mode=view "MultWii and Raspberry Pie on a quadcopter")
-
-## Example:
-
-This code has no sleeps or similar stuff, so, its very fast, for example, when asking for Attitude data, the whole process takes 0.016 seconds, thats about 62.5hz, which is pretty fast. The output looks like this:
-
-```
-{'angx': -5.1, 'angy': 10.4, 'heading': 170.0}
-0.016 
-{'angx': -5.3, 'angy': 13.0, 'heading': 170.0}
-0.016 
-{'angx': -5.6, 'angy': 15.8, 'heading': 171.0}
-0.016 
-{'angx': -6.0, 'angy': 19.6, 'heading': 172.0}
-0.017 
-{'angx': -6.2, 'angy': 22.8, 'heading': 173.0}
-0.015 
-{'angx': -6.5, 'angy': 25.4, 'heading': 173.0}
-0.016 
-{'angx': -6.6, 'angy': 27.4, 'heading': 173.0}
-0.016 
-{'angx': -6.6, 'angy': 27.7, 'heading': 173.0}
-0.016 
-{'angx': -6.3, 'angy': 26.5, 'heading': 173.0}
-0.016 
-{'angx': -5.9, 'angy': 25.2, 'heading': 173.0}
-0.016 
-{'angx': -5.6, 'angy': 22.8, 'heading': 172.0}
-0.016 
-{'angx': -5.2, 'angy': 19.2, 'heading': 172.0}
-0.016 
-{'angx': -4.7, 'angy': 14.7, 'heading': 171.0}
-0.016 
-{'angx': -4.3, 'angy': 11.1, 'heading': 170.0}
-```
-
-## Caution
-
-This code is still under heavy development, everyday I add and remove stuff. Use caution.
