@@ -15,12 +15,12 @@ from multiwii import MultiWii
 
 if __name__ == "__main__":
 
-    serialPort = "/dev/tty.usbserial-A101CCVF"
+    serialPort = "/dev/tty.usbserial-AM016WP4"
+    #serialPort = "/dev/tty.SLAB_USBtoUART"
     board1 = MultiWii(serialPort)
-    #board2 = MultiWii("/dev/tty.usbserial-AM016WP4")
     try:
         while True:
-            board1.getData(MultiWii.ATTITUDE)
-            print board1.attitude
+            board1.getData2cmd(MultiWii.ATTITUDE)
+            print board1.message
     except Exception,error:
         print "Error on Main: "+str(error)
