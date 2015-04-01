@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""main.py: Main module to test communication with a MultiWii Board."""
+"""test-attitude.py: Main module to test communication with a MultiWii Board by asking attitude."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2014 Aldux.net"
@@ -11,16 +11,16 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-from multiwii import MultiWii
+from pyMultiwii import MultiWii
 
 if __name__ == "__main__":
 
-    serialPort = "/dev/tty.usbserial-AM016WP4"
+    serialPort = "/dev/tty.usbserial-A801WZA1"
     #serialPort = "/dev/tty.SLAB_USBtoUART"
-    board1 = MultiWii(serialPort)
+    board = MultiWii(serialPort)
     try:
         while True:
-            board1.getData2cmd(MultiWii.ATTITUDE)
-            print board1.message
+            board.getData(MultiWii.ATTITUDE)
+            print board.attitude
     except Exception,error:
         print "Error on Main: "+str(error)

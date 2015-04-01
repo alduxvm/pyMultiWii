@@ -106,7 +106,7 @@ class MultiWii:
             b = None
             b = self.ser.write(struct.pack('<3c2B%dhB' % len(data), *total_data))
         except Exception, error:
-            print "\n\nError is sendCMD."
+            print "\n\nError in sendCMD."
             print "("+str(error)+")\n\n"
             self.ser.close()
             quit()
@@ -126,9 +126,9 @@ class MultiWii:
             code = struct.unpack('<b', self.ser.read())
             data = self.ser.read(datalength)
             temp = struct.unpack('<'+'h'*(datalength/2),data)
-            elapsed = time.time() - start
             self.ser.flushInput()
             self.ser.flushOutput()
+            elapsed = time.time() - start
             if cmd == MultiWii.ATTITUDE:
                 self.attitude['angx']=float(temp[0]/10.0)
                 self.attitude['angy']=float(temp[1]/10.0)
