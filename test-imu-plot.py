@@ -21,6 +21,7 @@ class Chart(object):
 		self.senses = 0
 		self.sb, self.axbuf, self.aybuf, self.azbuf = 0, 0, 0, 0
 		self.gxbuf, self.gybuf, self.gzbuf = 0, 0, 0
+		plt.show(block=False)
 		plt.ion()
 		self.fig = plt.figure(1, figsize=(19, 6))
 		plt.ylim([-1000, 1000])

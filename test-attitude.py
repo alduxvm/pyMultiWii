@@ -15,9 +15,8 @@ from pyMultiwii import MultiWii
 
 if __name__ == "__main__":
 
-    serialPort = "/dev/tty.usbserial-A801WZA1"
-    #serialPort = "/dev/tty.SLAB_USBtoUART"
-    board = MultiWii(serialPort)
+    #board = MultiWii("/dev/ttyUSB0")
+    board = MultiWii("/dev/tty.usbserial-A801WZA1")
     try:
         while True:
             board.getData(MultiWii.ATTITUDE)
