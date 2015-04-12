@@ -202,7 +202,8 @@ class MultiWii:
             else:
                 return "No return error!"
         except Exception, error:
-            print error
+            #print error
+            pass
 
     """Function to receive a data packet from the board. Note: easier to use on threads"""
     def getDataInf(self, cmd):
