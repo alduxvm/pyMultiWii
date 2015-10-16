@@ -80,7 +80,7 @@ class MultiWii:
         self.ser.dsrdtr = False
         self.ser.writeTimeout = 2
         """Time to wait until the board becames operational"""
-        wakeup = 12
+        wakeup = 2
         try:
             self.ser.open()
             if self.PRINT:
