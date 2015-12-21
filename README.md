@@ -20,9 +20,30 @@ With the example above, you will see a stream of data on your terminal.
 
 [![ScreenShot](http://img.youtube.com/vi/TpcQ-TOuOA0/0.jpg)](https://www.youtube.com/watch?v=TpcQ-TOuOA0)
 
+## Newer boards update:
+
+If you're using something similar to a naze32 using either baseflight or cleanflight you will be able to ask for attitude and some other commands, but by default you will not be able to use the MSP_SET_RAW_RC to write pilot commands to the multiwii. In order to do that you need to activate (via the baseflight/cleanflight GUI) the ```SerialRX	``` with the specific type for MSP (MultiWii Serial Protocol). The instructions for doing that on baseflight are:
+
+- Open the CLI (while on the baseflight configurator) and type:
+
+```
+feature SERIALRX
+```
+
+and then type the following lines:
+
+```
+set serialrx_type=4
+```
+
+This will activate "msp" in order to control the multiwii via that protocol. Important: when type=4 is active, standard radio will not work... (at least on the releases I'm using).
+
+Then you can carefully test my example "test-arm-disarm.py"... You will see the motors spin for 3 seconds. ¡¡BE CAREFUL!!
+
+
 ## Example:
 
-This code has no sleeps or similar stuff, so, its very fast, for example, when asking for Attitude data, the whole process takes 0.016 seconds, thats about 62.5hz, which is pretty fast. The output looks like this:
+This code has no ```time.sleep()```, so, its very fast and efficient. The output looks like this when asking or ATTITUDE:
 
 ```
 {'timestamp': 1417432436.878697, 'elapsed': 0.016, 'angx': -26.8, 'angy': -24.8, 'heading': -84.0}
@@ -46,9 +67,11 @@ This code has no sleeps or similar stuff, so, its very fast, for example, when a
 {'timestamp': 1417432437.166525, 'elapsed': 0.016, 'angx': -26.6, 'angy': -24.1, 'heading': -85.0}
 ```
 
+Using different devices and newer boards you can achieve greater rates of communication, using an oDroid U3 and a naze32 I have achieved close to 300hz.
+
 ## Caution
 
-This code is still under heavy development, everyday I add and remove stuff. Use caution.
+This code is still somewhat under development, if you found a bug or a improvement, please let me know!!
 
 ## Why?
 

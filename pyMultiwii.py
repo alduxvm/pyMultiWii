@@ -79,12 +79,12 @@ class MultiWii:
         self.ser.rtscts = False
         self.ser.dsrdtr = False
         self.ser.writeTimeout = 2
-        """Time to wait until the board becames operational"""
+        """Time to wait until the board becomes operational"""
         wakeup = 2
         try:
             self.ser.open()
             if self.PRINT:
-                print "Waking up multicopter on "+self.ser.port+"..."
+                print "Waking up board on "+self.ser.port+"..."
             for i in range(1,wakeup):
                 if self.PRINT:
                     print wakeup-i
