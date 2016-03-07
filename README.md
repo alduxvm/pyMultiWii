@@ -1,3 +1,5 @@
+![Altax](https://altax.net/images/altax.png "Altax")
+
 # pyMultiWii
 
 
@@ -19,6 +21,10 @@ board1 = MultiWii(serialPort)
 With the example above, you will see a stream of data on your terminal.
 
 [![ScreenShot](http://img.youtube.com/vi/TpcQ-TOuOA0/0.jpg)](https://www.youtube.com/watch?v=TpcQ-TOuOA0)
+
+## Case examples:
+
+[![Multiwii joystick (naze32)](http://img.youtube.com/vi/XyyfGp-IomE/0.jpg)](http://www.youtube.com/watch?v=XyyfGp-IomE)
 
 ## Newer boards update:
 
