@@ -9,24 +9,76 @@ This is a text based / console, no GUI, it works reading data from the multicopt
 
 ## How?
 
-Just create a MultiWii object that receives the serial port parameter and then you can ask for a command by using the function getData, a explicit example is on main.py:
+Just create a MultiWii object that receives the serial port address as parameter and then you can ask for a MSP command by using the function getData, an explicit example looks like this:
 
 ```
 serialPort = "/dev/tty.usbserial-A101CCVF"
-board1 = MultiWii(serialPort)
+board = MultiWii(serialPort)
     while True:
-		print board1.getData(MultiWii.ATTITUDE)
+		print board.getData(MultiWii.ATTITUDE)
 ```
 
 With the example above, you will see a stream of data on your terminal.
 
 [![ScreenShot](http://img.youtube.com/vi/TpcQ-TOuOA0/0.jpg)](https://www.youtube.com/watch?v=TpcQ-TOuOA0)
 
-## Case examples:
+## MultiWii Serial Protocol
 
-[![Multiwii joystick (naze32)](http://img.youtube.com/vi/XyyfGp-IomE/0.jpg)](http://www.youtube.com/watch?v=XyyfGp-IomE)
+MSP is a protocol designed by the MultiWii community, with the idea to be light, generic, bit wire efficient, secure. The MSP data frames are structured as:
 
-## Newer boards update:
+```
+$<header>,<direction>,<size>,<command>,<crc>$
+```
+
+where:
+
+* header: the ASCII characters `$\$M$`
+* direction: the ASCII character `$<$` if the message goes to the MultiWii board or `$>$` if the message is coming from the board
+* size: number of data bytes, binary. Can be zero as in the case of a data request to the board
+* command: message id of MSP
+* data: values to be sent. UINT16 values are LSB first
+* crc: (cyclic redundancy check) checksum, XOR of `$<size>,<command>$` and each data byte into a zero sum
+
+### Data Flow
+
+There is basically three types of messages to interact with a MultiWii board. Those are command, request and response. Command is an incoming message without implicit outgoing response from the board, request is an incoming message with implicit outgoing response while response is the outgoing message resulting from an incoming request.
+
+If, e.g., the orientation of the board is needed, then a message with type request and ID = 108 must be created and then sent to the board, after being sent, the board will reply with a response.
+
+### Performance
+
+The entire implementation of this module does not include a sleep function, which means that is very fast and efficient, the rate of communication would then depend on the computer and the board capabilities.
+
+The module is also designed to be extremely simple to use, the next code will request and print (to the host computer) the orientation of the a MultiWii board connected to a USB port:
+
+```
+from pyMultiwii import MultiWii
+from sys import stdout
+
+if __name__ == "__main__":
+    board = MultiWii("/dev/ttyUSB0")
+    try:
+        while True:
+            board.getData(MultiWii.ATTITUDE)
+            print board.attitude 
+    except Exception,error:
+        print "Error on Main: "+str(error)
+```
+
+This module can achieve communication back and forth of 300hz, this was achieved using a Naze32 (32bits micro-controller) board and a Odroid U3. And around 62.5hz when using a MultiWii AIO 2.0 (8bits micro-controller) board and a Raspberry Pi.
+
+## Boards update
+
+### 8bit boards
+
+When using an 8bit MultiWii board, please change the `wakeup` time on the main file at line 84. The old boards need more than 10 seconds to boot up in order to be ready to start asking for data. A safe time would be:
+
+```
+"""Time to wait until the board becomes operational"""
+wakeup = 14
+```
+
+### 32bit boards
 
 If you're using something similar to a naze32 using either baseflight or cleanflight you will be able to ask for attitude and some other commands, but by default you will not be able to use the MSP_SET_RAW_RC to write pilot commands to the multiwii. In order to do that you need to activate (via the baseflight/cleanflight GUI) the ```SerialRX	``` with the specific type for MSP (MultiWii Serial Protocol). The instructions for doing that on baseflight are:
 
@@ -45,7 +97,6 @@ set serialrx_type=4
 This will activate "msp" in order to control the multiwii via that protocol. Important: when type=4 is active, standard radio will not work... (at least on the releases I'm using).
 
 Then you can carefully test my example "test-arm-disarm.py"... You will see the motors spin for 3 seconds. ¡¡BE CAREFUL!!
-
 
 ## Example:
 
@@ -74,6 +125,15 @@ This code has no ```time.sleep()```, so, its very fast and efficient. The output
 ```
 
 Using different devices and newer boards you can achieve greater rates of communication, using an oDroid U3 and a naze32 I have achieved close to 300hz.
+
+## Video usages:
+
+[![Multiwii joystick (naze32)](http://img.youtube.com/vi/XyyfGp-IomE/0.jpg)](http://www.youtube.com/watch?v=XyyfGp-IomE)
+
+[![Drone Pilot - Position hold controller (raspberry pi + naze32)](http://img.youtube.com/vi/oN2S1qJaQNU/0.jpg)](http://www.youtube.com/watch?v=oN2S1qJaQNU)
+
+[![Drone Pilot - Trajectory controller (raspberry pi + naze32)](http://img.youtube.com/vi/k6tswW7M_-8/0.jpg)](http://www.youtube.com/watch?v=k6tswW7M_-8)
+
 
 ## Caution
 
