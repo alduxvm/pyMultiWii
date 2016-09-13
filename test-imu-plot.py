@@ -3,7 +3,7 @@
 """test-imu-plot.py: Ask multiwii for raw IMU and plot it using matplotlib."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1"

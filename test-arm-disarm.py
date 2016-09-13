@@ -3,7 +3,7 @@
 """test-send.py: Test script to send RC commands to a MultiWii Board."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2014 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1"

@@ -3,7 +3,7 @@
 """test-attitude.py: Main module to test communication with a MultiWii Board by asking attitude."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2014 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1"
