@@ -3,10 +3,10 @@
 """multiwii.py: Handles Multiwii Serial Protocol."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2014 Altax.net"
+__copyright__ = "Copyright 2017 Altax.net"
 
 __license__ = "GPL"
-__version__ = "1.5"
+__version__ = "1.6"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -60,7 +60,7 @@ class MultiWii:
 
         """Global variables of data"""
         self.rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
-        self.rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'elapsed':0,'timestamp':0}
+        self.rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'elapsed':0,'timestamp':0}
         self.motor = {'m1':0,'m2':0,'m3':0,'m4':0,'elapsed':0,'timestamp':0}
         self.attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
         self.message = {'angx':0,'angy':0,'heading':0,'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
@@ -224,6 +224,9 @@ class MultiWii:
                 self.rawIMU['gx']=float(temp[3])
                 self.rawIMU['gy']=float(temp[4])
                 self.rawIMU['gz']=float(temp[5])
+                self.rawIMU['mx']=float(temp[6])
+                self.rawIMU['my']=float(temp[7])
+                self.rawIMU['mz']=float(temp[8])
                 self.rawIMU['elapsed']=round(elapsed,3)
                 self.rawIMU['timestamp']="%0.2f" % (time.time(),)
                 return self.rawIMU

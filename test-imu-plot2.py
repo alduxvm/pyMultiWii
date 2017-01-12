@@ -16,7 +16,8 @@ from pyMultiwii import MultiWii
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 
-board = MultiWii("/dev/tty.usbserial-A801WZA1")
+#board = MultiWii("/dev/tty.usbserial-A801WZA1")
+board = MultiWii("/dev/tty.SLAB_USBtoUART")
 win = pg.GraphicsWindow()
 win.setWindowTitle('MultiWii IMU plotting')
 

@@ -40,8 +40,8 @@ class Chart(object):
 
 if __name__ == "__main__":
 	chart = Chart()
-	serialPort = "/dev/tty.usbserial-A801WZA1"
-	#serialPort = "/dev/tty.SLAB_USBtoUART"
+	#serialPort = "/dev/tty.usbserial-A801WZA1"
+	serialPort = "/dev/tty.SLAB_USBtoUART"
 	board = MultiWii(serialPort)
 	
 	try:
