@@ -63,6 +63,7 @@ class MultiWii:
         self.rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'elapsed':0,'timestamp':0}
         self.motor = {'m1':0,'m2':0,'m3':0,'m4':0,'elapsed':0,'timestamp':0}
         self.attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
+        self.altitude = {'estalt':0,'vario':0,'elapsed':0,'timestamp':0}
         self.message = {'angx':0,'angy':0,'heading':0,'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
         self.temp = ();
         self.temp2 = ();
@@ -209,6 +210,12 @@ class MultiWii:
                 self.attitude['elapsed']=round(elapsed,3)
                 self.attitude['timestamp']="%0.2f" % (time.time(),) 
                 return self.attitude
+            elif cmd == MultiWii.ALTITUDE:
+                self.altitude['estalt']=float(temp[0])
+                self.altitude['vario']=float(temp[1])
+                self.attitude['elapsed']=round(elapsed,3)
+                self.attitude['timestamp']="%0.2f" % (time.time(),) 
+                return self.rcChannels
             elif cmd == MultiWii.RC:
                 self.rcChannels['roll']=temp[0]
                 self.rcChannels['pitch']=temp[1]
