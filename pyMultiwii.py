@@ -59,6 +59,7 @@ class MultiWii:
     def __init__(self, serPort):
 
         """Global variables of data"""
+        self.PIDcoef = {'rp':0,'ri':0,'rd':0,'pp':0,'pi':0,'pd':0,'yp':0,'yi':0,'yd':0}
         self.rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
         self.rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'elapsed':0,'timestamp':0}
         self.motor = {'m1':0,'m2':0,'m3':0,'m4':0,'elapsed':0,'timestamp':0}
@@ -185,6 +186,15 @@ class MultiWii:
             time.sleep(0.05)
             timer = timer + (time.time() - start)
             start =  time.time()
+    
+    def setPID(self,pd):
+        nd=[]
+        for i in np.arange(1,len(pd),2):
+            nd.append(pd[i]+pd[i+1]*256)
+        data = pd
+        print "PID sending:",data
+        self.sendCMD(30,MultiWii.SET_PID,data)
+        self.sendCMD(0,MultiWii.EEPROM_WRITE,[])
 
     """Function to receive a data packet from the board"""
     def getData(self, cmd):
@@ -245,6 +255,26 @@ class MultiWii:
                 self.motor['elapsed']="%0.3f" % (elapsed,)
                 self.motor['timestamp']="%0.2f" % (time.time(),)
                 return self.motor
+            elif cmd == MultiWii.PID:
+                dataPID=[]
+                if len(temp)>1:
+                    d=0
+                    for t in temp:
+                        dataPID.append(t%256)
+                        dataPID.append(t/256)
+                    for p in [0,3,6,9]:
+                        dataPID[p]=dataPID[p]/10.0
+                        dataPID[p+1]=dataPID[p+1]/1000.0
+                    self.PIDcoef['rp']= dataPID=[0]
+                    self.PIDcoef['ri']= dataPID=[1]
+                    self.PIDcoef['rd']= dataPID=[2]
+                    self.PIDcoef['pp']= dataPID=[3]
+                    self.PIDcoef['pi']= dataPID=[4]
+                    self.PIDcoef['pd']= dataPID=[5]
+                    self.PIDcoef['yp']= dataPID=[6]
+                    self.PIDcoef['yi']= dataPID=[7]
+                    self.PIDcoef['yd']= dataPID=[8]
+                return self.PIDcoef
             else:
                 return "No return error!"
         except Exception, error:
