@@ -3,14 +3,13 @@
 # pyMultiWii
 
 
-Handles the MultiWii Serial Protocol to send/receive data from boards.
+MultiWii Serial Protocol (MSP) API to send and receive data from firmware using MSP.
 
-This is a text based / console, no GUI, it works reading data from the multicopter and/or sending commands from a computer via a serial modem. I use this module for doing different request to my multicopters in order to control them wirelessly via a raspberry pie.
+This is a text based / console, no GUI, it works by sending and reading data to a board with firmware using MSP (naze32, etc etc) and/or sending commands from a computer via a serial modem. I use this module for doing different request to my multicopters in order to control them wirelessly via a raspberry pi.
 
-## Installation 
+## Installation
 
 To install with pip run the following command from this directory,
-
 ```
 pip install .
 ```
@@ -18,7 +17,6 @@ pip install .
 ## How?
 
 Just create a MultiWii object that receives the serial port address as parameter and then you can ask for a MSP command by using the function getData, an explicit example looks like this:
-
 ```
 from pymultiwii import MultiWii
 
@@ -32,7 +30,7 @@ With the example above, you will see a stream of data on your terminal.
 
 pyMultiWii also includes support for communicating over TCP to communicate with
 MSP flight controllers built as software in the loop (SITL). Simply change to a
-TCP address to communicate over TCP. 
+TCP address to communicate over TCP.
 
 ```
 from pymultiwii import MultiWii
@@ -83,7 +81,7 @@ if __name__ == "__main__":
     try:
         while True:
             board.getData(MultiWii.ATTITUDE)
-            print board.attitude 
+            print board.attitude
     except Exception,error:
         print "Error on Main: "+str(error)
 ```
@@ -164,7 +162,7 @@ This code is still somewhat under development, if you found a bug or a improveme
 
 ## Why?
 
-I'm doing systems identification of multicopters being flown by me via a multiwii board. Why do I want to do this? I want to do very precise navigation algorithms using a motion capture system. 
+I'm doing systems identification of multicopters being flown by me via a multiwii board. Why do I want to do this? I want to do very precise navigation algorithms using a motion capture system.
 
 Systems identification is a statistical method to build mathematical models of the multicopters, to have excellent control we require a perfect mathematical model. In order to do a good sysid we require data, lots of data, data coming from the board as well as the pilot and the position in the space (motion capture), so, I require raw imu (accelerometers and gyroscopes), pilot commands (rc channels) and position (x,y,z).
 
