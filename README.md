@@ -7,11 +7,21 @@ Handles the MultiWii Serial Protocol to send/receive data from boards.
 
 This is a text based / console, no GUI, it works reading data from the multicopter and/or sending commands from a computer via a serial modem. I use this module for doing different request to my multicopters in order to control them wirelessly via a raspberry pie.
 
+## Installation 
+
+To install with pip run the following command from this directory,
+
+```
+pip install .
+```
+
 ## How?
 
 Just create a MultiWii object that receives the serial port address as parameter and then you can ask for a MSP command by using the function getData, an explicit example looks like this:
 
 ```
+from pymultiwii import MultiWii
+
 serialPort = "/dev/tty.usbserial-A101CCVF"
 board = MultiWii(serialPort)
     while True:
@@ -19,6 +29,19 @@ board = MultiWii(serialPort)
 ```
 
 With the example above, you will see a stream of data on your terminal.
+
+pyMultiWii also includes support for communicating over TCP to communicate with
+MSP flight controllers built as software in the loop (SITL). Simply change to a
+TCP address to communicate over TCP. 
+
+```
+from pymultiwii import MultiWii
+
+tcpAddress = "tcp://127.0.0.1:5761"
+board = MultiWii(tcpAddress)
+    while True:
+		print board.getData(MultiWii.ATTITUDE)
+```
 
 [![ScreenShot](http://img.youtube.com/vi/TpcQ-TOuOA0/0.jpg)](https://www.youtube.com/watch?v=TpcQ-TOuOA0)
 

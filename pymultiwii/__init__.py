@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-"""multiwii.py: Handles Multiwii Serial Protocol."""
+"""Handles Multiwii Serial Protocol."""
 
 __author__ = "Aldo Vargas"
+__author__ = "William Koch"
 __copyright__ = "Copyright 2017 Altax.net"
 
 __license__ = "GPL"
@@ -13,7 +14,122 @@ __status__ = "Development"
 
 
 import serial, time, struct
+import socket
+from urlparse import urlparse
+import abc
 
+class MultiwiiCommChannel(object):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def connect(self):
+        """ Open connection """
+        return 
+
+    @abc.abstractmethod
+    def close(self):
+        """ Close connection """
+        return 
+
+    @abc.abstractmethod
+    def write(self, message):
+        """ Write the message to the channel """
+        return 
+
+    @abc.abstractmethod
+    def read(self):
+        """ Read data from channel """
+        return 
+
+class MultiWiiSerialChannel(MultiwiiCommChannel):
+
+    def __init__(self, dstAddress, baudrate = 115200):
+        self.ser = serial.Serial()
+        self.ser.port = dstAddress
+        self.ser.baudrate = baudrate
+        self.ser.bytesize = serial.EIGHTBITS
+        self.ser.parity = serial.PARITY_NONE
+        self.ser.stopbits = serial.STOPBITS_ONE
+        self.ser.timeout = 0
+        self.ser.xonxoff = False
+        self.ser.rtscts = False
+        self.ser.dsrdtr = False
+        self.ser.writeTimeout = 2
+
+    def connect(self):
+        """Time to wait until the board becomes operational"""
+        wakeup = 2
+        #TODO Need to replace this with proper logging
+        self.PRINT = 1
+        try:
+            self.ser.open()
+            if self.PRINT:
+                print "Waking up board on "+self.ser.port+"..."
+            for i in range(1,wakeup):
+                if self.PRINT:
+                    print wakeup-i
+                    time.sleep(1)
+                else:
+                    time.sleep(1)
+        except Exception, error:
+            print "\n\nError opening "+self.ser.port+" port.\n"+str(error)+"\n\n"
+
+    def close(self):
+        pass
+
+    def write(self, message):
+        return self.ser.write(message)
+
+    def read(self):
+        while True:
+            header = self.ser.read()
+            if header == '$':
+                header = header+self.ser.read(2)
+                break
+        datalength = struct.unpack('<b', self.ser.read())[0]
+        code = struct.unpack('<b', self.ser.read())
+        data = self.ser.read(datalength)
+        temp = struct.unpack('<'+'h'*(datalength/2),data)
+        self.ser.flushInput()
+        self.ser.flushOutput()
+        return temp
+
+class MultiwiiTCPChannel(MultiwiiCommChannel):
+    # TODO Whats the max size we can expect to receive from the FC?
+    BUFFER_SIZE = 1024
+
+    def __init__(self, ipaddr, port):
+        self.ipaddr = ipaddr
+        self.port = port
+
+        self.data_recv = None
+
+    def connect(self):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect((self.ipaddr, self.port))
+
+    def close(self):
+        if not self.s:
+            raise Exception("Cannot close, socket never created")
+        self.s.close()
+
+    def write(self, message):
+        if not self.s:
+            raise Exception("Cannot close, socket never created")
+        self.s.send(message)
+
+        # So the interface is the same as serial we will require this in 
+        # in two steps for now. If there is a response, it will be cached 
+        # and a read will have to be made
+        self.data_recv = self.s.recv(MultiwiiTCPChannel.BUFFER_SIZE)
+    
+    def read(self):
+        if not self.data_recv:
+            raise Exception("Have not received data, call write first")
+        datalength = struct.unpack('<b', self.data_recv[3])[0]
+        code = struct.unpack('<b', self.data_recv[4])[0]
+        data = self.data_recv[5 : 5 + datalength]
+        return struct.unpack('<'+'h'*(datalength/2),data)
 
 class MultiWii:
 
@@ -56,7 +172,7 @@ class MultiWii:
 
 
     """Class initialization"""
-    def __init__(self, serPort):
+    def __init__(self, fc_address):
 
         """Global variables of data"""
         self.PIDcoef = {'rp':0,'ri':0,'rd':0,'pp':0,'pi':0,'pd':0,'yp':0,'yi':0,'yd':0}
@@ -71,31 +187,22 @@ class MultiWii:
         self.elapsed = 0
         self.PRINT = 1
 
-        self.ser = serial.Serial()
-        self.ser.port = serPort
-        self.ser.baudrate = 115200
-        self.ser.bytesize = serial.EIGHTBITS
-        self.ser.parity = serial.PARITY_NONE
-        self.ser.stopbits = serial.STOPBITS_ONE
-        self.ser.timeout = 0
-        self.ser.xonxoff = False
-        self.ser.rtscts = False
-        self.ser.dsrdtr = False
-        self.ser.writeTimeout = 2
-        """Time to wait until the board becomes operational"""
-        wakeup = 2
-        try:
-            self.ser.open()
-            if self.PRINT:
-                print "Waking up board on "+self.ser.port+"..."
-            for i in range(1,wakeup):
-                if self.PRINT:
-                    print wakeup-i
-                    time.sleep(1)
-                else:
-                    time.sleep(1)
-        except Exception, error:
-            print "\n\nError opening "+self.ser.port+" port.\n"+str(error)+"\n\n"
+        self.channel = None
+        parsed_address = urlparse(fc_address)
+        if parsed_address.scheme == "tcp":
+            self.channel = MultiwiiTCPChannel(parsed_address.hostname, parsed_address.port)
+        else:
+            self.channel = MultiWiiSerialChannel(fc_address)
+        
+        #self.connect()
+
+    def connect(self):
+        """ Connect to the flight controller through the defined communication channel """
+        self.channel.connect()
+
+    def close(self):
+        """ Close the connection to the flight controller """
+        self.channel.close()
 
     """Function for sending a command to the board"""
     def sendCMD(self, data_length, code, data):
@@ -105,12 +212,10 @@ class MultiWii:
             checksum = checksum ^ ord(i)
         total_data.append(checksum)
         try:
-            b = None
-            b = self.ser.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
+            self.channel.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
         except Exception, error:
-            #print "\n\nError in sendCMD."
+            print "sendCMD error ", error
             #print "("+str(error)+")\n\n"
-            pass
 
     """Function for sending a command to the board and receive attitude"""
     """
@@ -132,18 +237,9 @@ class MultiWii:
         try:
             start = time.time()
             b = None
-            b = self.ser.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
-            while True:
-                header = self.ser.read()
-                if header == '$':
-                    header = header+self.ser.read(2)
-                    break
-            datalength = struct.unpack('<b', self.ser.read())[0]
-            code = struct.unpack('<b', self.ser.read())
-            data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*(datalength/2),data)
-            self.ser.flushInput()
-            self.ser.flushOutput()
+            b = self.channel.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
+            temp = self.channel.read(cmd)
+
             elapsed = time.time() - start
             self.attitude['angx']=float(temp[0]/10.0)
             self.attitude['angy']=float(temp[1]/10.0)
@@ -201,17 +297,8 @@ class MultiWii:
         try:
             start = time.time()
             self.sendCMD(0,cmd,[])
-            while True:
-                header = self.ser.read()
-                if header == '$':
-                    header = header+self.ser.read(2)
-                    break
-            datalength = struct.unpack('<b', self.ser.read())[0]
-            code = struct.unpack('<b', self.ser.read())
-            data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*(datalength/2),data)
-            self.ser.flushInput()
-            self.ser.flushOutput()
+            temp = self.channel.read()
+
             elapsed = time.time() - start
             if cmd == MultiWii.ATTITUDE:
                 self.attitude['angx']=float(temp[0]/10.0)
@@ -278,89 +365,24 @@ class MultiWii:
             else:
                 return "No return error!"
         except Exception, error:
-            #print error
-            pass
+            print "getData erorr", error
 
     """Function to receive a data packet from the board. Note: easier to use on threads"""
     def getDataInf(self, cmd):
         while True:
-            try:
-                start = time.clock()
-                self.sendCMD(0,cmd,[])
-                while True:
-                    header = self.ser.read()
-                    if header == '$':
-                        header = header+self.ser.read(2)
-                        break
-                datalength = struct.unpack('<b', self.ser.read())[0]
-                code = struct.unpack('<b', self.ser.read())
-                data = self.ser.read(datalength)
-                temp = struct.unpack('<'+'h'*(datalength/2),data)
-                elapsed = time.clock() - start
-                self.ser.flushInput()
-                self.ser.flushOutput()
-                if cmd == MultiWii.ATTITUDE:
-                    self.attitude['angx']=float(temp[0]/10.0)
-                    self.attitude['angy']=float(temp[1]/10.0)
-                    self.attitude['heading']=float(temp[2])
-                    self.attitude['elapsed']="%0.3f" % (elapsed,)
-                    self.attitude['timestamp']="%0.2f" % (time.time(),)
-                elif cmd == MultiWii.RC:
-                    self.rcChannels['roll']=temp[0]
-                    self.rcChannels['pitch']=temp[1]
-                    self.rcChannels['yaw']=temp[2]
-                    self.rcChannels['throttle']=temp[3]
-                    self.rcChannels['elapsed']="%0.3f" % (elapsed,)
-                    self.rcChannels['timestamp']="%0.2f" % (time.time(),)
-                elif cmd == MultiWii.RAW_IMU:
-                    self.rawIMU['ax']=float(temp[0])
-                    self.rawIMU['ay']=float(temp[1])
-                    self.rawIMU['az']=float(temp[2])
-                    self.rawIMU['gx']=float(temp[3])
-                    self.rawIMU['gy']=float(temp[4])
-                    self.rawIMU['gz']=float(temp[5])
-                    self.rawIMU['elapsed']="%0.3f" % (elapsed,)
-                    self.rawIMU['timestamp']="%0.2f" % (time.time(),)
-                elif cmd == MultiWii.MOTOR:
-                    self.motor['m1']=float(temp[0])
-                    self.motor['m2']=float(temp[1])
-                    self.motor['m3']=float(temp[2])
-                    self.motor['m4']=float(temp[3])
-                    self.motor['elapsed']="%0.3f" % (elapsed,)
-                    self.motor['timestamp']="%0.2f" % (time.time(),)
-            except Exception, error:
-                pass
+            self.getData(cmd)
 
     """Function to ask for 2 fixed cmds, attitude and rc channels, and receive them. Note: is a bit slower than others"""
     def getData2cmd(self, cmd):
         try:
             start = time.time()
             self.sendCMD(0,self.ATTITUDE,[])
-            while True:
-                header = self.ser.read()
-                if header == '$':
-                    header = header+self.ser.read(2)
-                    break
-            datalength = struct.unpack('<b', self.ser.read())[0]
-            code = struct.unpack('<b', self.ser.read())
-            data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*(datalength/2),data)
-            self.ser.flushInput()
-            self.ser.flushOutput()
+            temp = self.channel.read(cmd)
 
             self.sendCMD(0,self.RC,[])
-            while True:
-                header = self.ser.read()
-                if header == '$':
-                    header = header+self.ser.read(2)
-                    break
-            datalength = struct.unpack('<b', self.ser.read())[0]
-            code = struct.unpack('<b', self.ser.read())
-            data = self.ser.read(datalength)
-            temp2 = struct.unpack('<'+'h'*(datalength/2),data)
+            temp2 = self.channel.read(cmd)
+
             elapsed = time.time() - start
-            self.ser.flushInput()
-            self.ser.flushOutput()
 
             if cmd == MultiWii.ATTITUDE:
                 self.message['angx']=float(temp[0]/10.0)
