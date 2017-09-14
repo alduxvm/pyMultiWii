@@ -223,9 +223,9 @@ class MultiWii:
             elif cmd == MultiWii.ALTITUDE:
                 self.altitude['estalt']=float(temp[0])
                 self.altitude['vario']=float(temp[1])
-                self.attitude['elapsed']=round(elapsed,3)
-                self.attitude['timestamp']="%0.2f" % (time.time(),) 
-                return self.rcChannels
+                self.altitude['elapsed']=round(elapsed,3)
+                self.altitude['timestamp']="%0.2f" % (time.time(),) 
+                return self.altitude
             elif cmd == MultiWii.RC:
                 self.rcChannels['roll']=temp[0]
                 self.rcChannels['pitch']=temp[1]
