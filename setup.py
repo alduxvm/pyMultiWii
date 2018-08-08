@@ -8,6 +8,4 @@ setup(
     author="Aldo Vargas",
     license="GPL",
     packages=['pymultiwii'],
-
-
 )

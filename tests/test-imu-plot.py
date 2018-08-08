@@ -47,7 +47,7 @@ if __name__ == "__main__":
 	try:
 		while True:
 			board.getData(MultiWii.RAW_IMU)
-			#print board.rawIMU
+			#print (board.rawIMU)
 			t = float(board.rawIMU['timestamp'])
 			ax = board.rawIMU['ax']
 			ay = board.rawIMU['ay']
@@ -57,4 +57,4 @@ if __name__ == "__main__":
 			gz = board.rawIMU['gz']
 			chart.plot(ax, ay, az, gx, gy, gz)
 	except Exception,error:
-		print "Error on Main: "+str(error)
+		print ("Error on Main: "+str(error))
