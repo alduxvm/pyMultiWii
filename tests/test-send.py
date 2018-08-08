@@ -28,6 +28,7 @@ if __name__ == "__main__":
             #New function that will receive attitude after setting the rc commands
             board.sendCMDreceiveATT(16,MultiWii.SET_RAW_RC,data)
             
-            print board.attitude
+            print (board.attitude)
     except Exception,error:
-        print "Error on Main: "+str(error)
+        print ("Error on Main: "+str(error))
+        
