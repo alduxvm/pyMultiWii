@@ -100,16 +100,16 @@ class MultiWii:
     """Function for sending a command to the board"""
     def sendCMD(self, data_length, code, data):
         checksum = 0
-        total_data = ['$', 'M', '<', data_length, code] + data
+        total_data = ['$'.encode('utf-8'), 'M'.encode('utf-8'), '<'.encode('utf-8'), data_length, code] + data
         for i in struct.pack('<2B%dH' % len(data), *total_data[3:len(total_data)]):
-            checksum = checksum ^ ord(i)
+            checksum = checksum ^ i
         total_data.append(checksum)
         try:
             b = None
             b = self.ser.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
         except Exception as error:
-            #print ("\n\nError in sendCMD.")
-            #print ("("+str(error)+")\n\n")
+            print ("\n\nError in sendCMD.")
+            print ("("+str(error)+")\n\n")
             pass
 
     """Function for sending a command to the board and receive attitude"""
@@ -125,23 +125,23 @@ class MultiWii:
     """
     def sendCMDreceiveATT(self, data_length, code, data):
         checksum = 0
-        total_data = ['$', 'M', '<', data_length, code] + data
+        total_data = ['$'.encode('utf-8'), 'M'.encode('utf-8'), '<'.encode('utf-8'), data_length, code] + data
         for i in struct.pack('<2B%dH' % len(data), *total_data[3:len(total_data)]):
-            checksum = checksum ^ ord(i)
+            checksum = checksum ^ i
         total_data.append(checksum)
         try:
             start = time.time()
             b = None
             b = self.ser.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
             while True:
-                header = self.ser.read()
+                header = self.ser.read().decode('utf-8')
                 if header == '$':
-                    header = header+self.ser.read(2)
+                    header = header+self.ser.read(2).decode('utf-8')
                     break
             datalength = struct.unpack('<b', self.ser.read())[0]
             code = struct.unpack('<b', self.ser.read())
             data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*(datalength/2),data)
+            temp = struct.unpack('<'+'h'*int(datalength/2),data)
             self.ser.flushInput()
             self.ser.flushOutput()
             elapsed = time.time() - start
@@ -152,8 +152,8 @@ class MultiWii:
             self.attitude['timestamp']="%0.2f" % (time.time(),) 
             return self.attitude
         except Exception as error:
-            #print ("\n\nError in sendCMDreceiveATT.")
-            #print ("("+str(error)+")\n\n")
+            print ("\n\nError in sendCMDreceiveATT.")
+            print ("("+str(error)+")\n\n")
             pass
 
     """Function to arm / disarm """
@@ -202,14 +202,14 @@ class MultiWii:
             start = time.time()
             self.sendCMD(0,cmd,[])
             while True:
-                header = self.ser.read()
+                header = self.ser.read().decode('utf-8')
                 if header == '$':
-                    header = header+self.ser.read(2)
+                    header = header+self.ser.read(2).decode('utf-8')
                     break
             datalength = struct.unpack('<b', self.ser.read())[0]
             code = struct.unpack('<b', self.ser.read())
             data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*(datalength/2),data)
+            temp = struct.unpack('<'+'h'*int(datalength/2),data)
             self.ser.flushInput()
             self.ser.flushOutput()
             elapsed = time.time() - start
@@ -278,7 +278,7 @@ class MultiWii:
             else:
                 return "No return error!"
         except Exception as error:
-            #print (error)
+            print (error)
             pass
 
     """Function to receive a data packet from the board. Note: easier to use on threads"""
@@ -288,14 +288,14 @@ class MultiWii:
                 start = time.clock()
                 self.sendCMD(0,cmd,[])
                 while True:
-                    header = self.ser.read()
+                    header = self.ser.read().decode('utf-8')
                     if header == '$':
-                        header = header+self.ser.read(2)
+                        header = header+self.ser.read(2).decode('utf-8')
                         break
                 datalength = struct.unpack('<b', self.ser.read())[0]
                 code = struct.unpack('<b', self.ser.read())
                 data = self.ser.read(datalength)
-                temp = struct.unpack('<'+'h'*(datalength/2),data)
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)
                 elapsed = time.clock() - start
                 self.ser.flushInput()
                 self.ser.flushOutput()
@@ -329,6 +329,7 @@ class MultiWii:
                     self.motor['elapsed']="%0.3f" % (elapsed,)
                     self.motor['timestamp']="%0.2f" % (time.time(),)
             except Exception as error:
+                print(error)
                 pass
 
     """Function to ask for 2 fixed cmds, attitude and rc channels, and receive them. Note: is a bit slower than others"""
@@ -337,27 +338,27 @@ class MultiWii:
             start = time.time()
             self.sendCMD(0,self.ATTITUDE,[])
             while True:
-                header = self.ser.read()
+                header = self.ser.read().decode('utf-8')
                 if header == '$':
-                    header = header+self.ser.read(2)
+                    header = header+self.ser.read(2).decode('utf-8')
                     break
             datalength = struct.unpack('<b', self.ser.read())[0]
             code = struct.unpack('<b', self.ser.read())
             data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*(datalength/2),data)
+            temp = struct.unpack('<'+'h'*int(datalength/2),data)
             self.ser.flushInput()
             self.ser.flushOutput()
 
             self.sendCMD(0,self.RC,[])
             while True:
-                header = self.ser.read()
+                header = self.ser.read().decode('utf-8')
                 if header == '$':
-                    header = header+self.ser.read(2)
+                    header = header+self.ser.read(2).decode('utf-8')
                     break
             datalength = struct.unpack('<b', self.ser.read())[0]
             code = struct.unpack('<b', self.ser.read())
             data = self.ser.read(datalength)
-            temp2 = struct.unpack('<'+'h'*(datalength/2),data)
+            temp2 = struct.unpack('<'+'h'*int(datalength/2),data)
             elapsed = time.time() - start
             self.ser.flushInput()
             self.ser.flushOutput()
