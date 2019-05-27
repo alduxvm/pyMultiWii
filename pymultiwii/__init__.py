@@ -53,6 +53,10 @@ class MultiWii:
     SWITCH_RC_SERIAL = 210
     IS_SERIAL = 211
     DEBUG = 254
+    VTX_CONFIG = 88
+    VTX_SET_CONFIG = 89
+    EEPROM_WRITE = 250
+    REBOOT = 68
 
 
     """Class initialization"""
@@ -66,6 +70,7 @@ class MultiWii:
         self.attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
         self.altitude = {'estalt':0,'vario':0,'elapsed':0,'timestamp':0}
         self.message = {'angx':0,'angy':0,'heading':0,'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
+        self.vtxConfig = {'device':0, 'band':0, 'channel':0, 'power':0, 'pit':0, 'unknown':0}
         self.temp = ();
         self.temp2 = ();
         self.elapsed = 0
@@ -98,15 +103,15 @@ class MultiWii:
             print ("\n\nError opening "+self.ser.port+" port.\n"+str(error)+"\n\n")
 
     """Function for sending a command to the board"""
-    def sendCMD(self, data_length, code, data):
+    def sendCMD(self, data_length, code, data, data_format):
         checksum = 0
         total_data = ['$'.encode('utf-8'), 'M'.encode('utf-8'), '<'.encode('utf-8'), data_length, code] + data
-        for i in struct.pack('<2B%dH' % len(data), *total_data[3:len(total_data)]):
+        for i in struct.pack('<2B' + data_format, *total_data[3:len(total_data)]):
             checksum = checksum ^ i
         total_data.append(checksum)
         try:
             b = None
-            b = self.ser.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
+            b = self.ser.write(struct.pack('<3c2B'+ data_format + 'B', *total_data))
         except Exception as error:
             print ("\n\nError in sendCMD.")
             print ("("+str(error)+")\n\n")
@@ -133,6 +138,7 @@ class MultiWii:
             start = time.time()
             b = None
             b = self.ser.write(struct.pack('<3c2B%dHB' % len(data), *total_data))
+            
             while True:
                 header = self.ser.read().decode('utf-8')
                 if header == '$':
@@ -196,11 +202,32 @@ class MultiWii:
         self.sendCMD(30,MultiWii.SET_PID,data)
         self.sendCMD(0,MultiWii.EEPROM_WRITE,[])
 
+    def setVTX(self,band,channel,power):
+        band_channel = ((band-1) << 3)|(channel-1)
+        t = None
+        while t == None :
+            t = self.getData(MultiWii.VTX_CONFIG)
+        different = (self.vtxConfig['band'] != band) | (self.vtxConfig['channel'] != channel) | (self.vtxConfig['power'] != power)
+        data = [band_channel,power,self.vtxConfig['pit']]
+        while different :
+            self.sendCMD(4,MultiWii.VTX_SET_CONFIG,data, 'H2B')
+            time.sleep(1)
+            self.sendCMD(0,MultiWii.EEPROM_WRITE,[],'')
+            self.ser.close()
+            time.sleep(3)
+            self.ser.open()
+            time.sleep(3)
+            t = None
+            while t == None :
+                t = self.getData(MultiWii.VTX_CONFIG)
+            print(t)
+            different = (self.vtxConfig['band'] != band) | (self.vtxConfig['channel'] != channel) | (self.vtxConfig['power'] != power)
+
     """Function to receive a data packet from the board"""
     def getData(self, cmd):
         try:
             start = time.time()
-            self.sendCMD(0,cmd,[])
+            self.sendCMD(0,cmd,[],'')
             while True:
                 header = self.ser.read().decode('utf-8')
                 if header == '$':
@@ -209,11 +236,12 @@ class MultiWii:
             datalength = struct.unpack('<b', self.ser.read())[0]
             code = struct.unpack('<b', self.ser.read())
             data = self.ser.read(datalength)
-            temp = struct.unpack('<'+'h'*int(datalength/2),data)
+            
             self.ser.flushInput()
             self.ser.flushOutput()
             elapsed = time.time() - start
             if cmd == MultiWii.ATTITUDE:
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)                
                 self.attitude['angx']=float(temp[0]/10.0)
                 self.attitude['angy']=float(temp[1]/10.0)
                 self.attitude['heading']=float(temp[2])
@@ -221,12 +249,14 @@ class MultiWii:
                 self.attitude['timestamp']="%0.2f" % (time.time(),) 
                 return self.attitude
             elif cmd == MultiWii.ALTITUDE:
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)
                 self.altitude['estalt']=float(temp[0])
                 self.altitude['vario']=float(temp[1])
                 self.altitude['elapsed']=round(elapsed,3)
                 self.altitude['timestamp']="%0.2f" % (time.time(),) 
                 return self.altitude
             elif cmd == MultiWii.RC:
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)
                 self.rcChannels['roll']=temp[0]
                 self.rcChannels['pitch']=temp[1]
                 self.rcChannels['yaw']=temp[2]
@@ -235,6 +265,7 @@ class MultiWii:
                 self.rcChannels['timestamp']="%0.2f" % (time.time(),)
                 return self.rcChannels
             elif cmd == MultiWii.RAW_IMU:
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)
                 self.rawIMU['ax']=float(temp[0])
                 self.rawIMU['ay']=float(temp[1])
                 self.rawIMU['az']=float(temp[2])
@@ -248,6 +279,7 @@ class MultiWii:
                 self.rawIMU['timestamp']="%0.2f" % (time.time(),)
                 return self.rawIMU
             elif cmd == MultiWii.MOTOR:
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)
                 self.motor['m1']=float(temp[0])
                 self.motor['m2']=float(temp[1])
                 self.motor['m3']=float(temp[2])
@@ -256,6 +288,7 @@ class MultiWii:
                 self.motor['timestamp']="%0.2f" % (time.time(),)
                 return self.motor
             elif cmd == MultiWii.PID:
+                temp = struct.unpack('<'+'h'*int(datalength/2),data)
                 dataPID=[]
                 if len(temp)>1:
                     d=0
@@ -275,6 +308,20 @@ class MultiWii:
                     self.PIDcoef['yi']= dataPID=[7]
                     self.PIDcoef['yd']= dataPID=[8]
                 return self.PIDcoef
+            elif cmd == MultiWii.VTX_CONFIG:
+                if datalength > 1:
+                    temp = struct.unpack('<bbbbb',data)
+                    self.vtxConfig['device'] = temp[0]
+                    self.vtxConfig['band'] = temp[1]
+                    self.vtxConfig['channel'] = temp[2]
+                    self.vtxConfig['power'] = temp[3]
+                    self.vtxConfig['pit'] = temp[4]
+                    self.vtxConfig['unknown'] = 0
+                    return self.vtxConfig
+                else:
+                    temp = struct.unpack('<b',data)
+                    self.vtxConfig['unknown'] = temp[0]
+                    return self.vtxConfig
             else:
                 return "No return error!"
         except Exception as error:
