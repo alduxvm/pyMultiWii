@@ -82,7 +82,7 @@ class MultiWii:
         self.ser.bytesize = serial.EIGHTBITS
         self.ser.parity = serial.PARITY_NONE
         self.ser.stopbits = serial.STOPBITS_ONE
-        self.ser.timeout = 0
+        self.ser.timeout = 0.1
         self.ser.xonxoff = False
         self.ser.rtscts = False
         self.ser.dsrdtr = False
